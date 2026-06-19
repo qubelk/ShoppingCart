@@ -34,3 +34,12 @@ func (p *Product) Validate() error {
 
 	return nil
 }
+
+func (p *Product) String() string {
+	return fmt.Sprintf(
+		"Product{ID: %s, Title: %s, Description: %s, Price: %f}",
+		p.ID,
+		p.Title,
+		p.Description.String,
+		p.Price)
+}
