@@ -27,6 +27,9 @@ go.work.sum
 # env file
 .env
 
+# index.html for gui testing
+index.html
+
 # Editor/IDE
 # .idea/
 # .vscode/

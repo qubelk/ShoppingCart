@@ -28,7 +28,7 @@ func New(repo repository.UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) genereteJWT(id string) (string, error) {
+func (s *UserService) generateJWT(id string) (string, error) {
 	claims := jwt.MapClaims{
 		"sub": id,
 		"iat": time.Now().Unix(),
@@ -36,7 +36,7 @@ func (s *UserService) genereteJWT(id string) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(s.jwtKey)
+	return token.SignedString([]byte(s.jwtKey))
 }
 
 func (s *UserService) ValidateJWT(tokenString string) (string, error) {
@@ -95,7 +95,7 @@ func (s *UserService) GetProfile(ctx context.Context, id uuid.UUID) (*user.User,
 	u, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, user.ErrUserNotFounded
+			return nil, user.ErrUserNotFound
 		}
 
 		return nil, fmt.Errorf("failed to get user: %w", err)
@@ -112,7 +112,7 @@ func (s *UserService) Login(ctx context.Context, req *user.LoginRequest) (*user.
 	u, err := s.repo.GetByEmail(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, user.ErrUserNotFounded
+			return nil, user.ErrUserNotFound
 		}
 
 		return nil, fmt.Errorf("failed to get user: %w", err)
@@ -122,19 +122,18 @@ func (s *UserService) Login(ctx context.Context, req *user.LoginRequest) (*user.
 		return nil, fmt.Errorf("invalid password")
 	}
 
-	token, err := s.genereteJWT(u.ID.String())
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate jwt token")
-	}
+	return &user.LoginResponse{User: *u}, nil
+}
 
-	return &user.LoginResponse{Token: token, User: *u}, nil
+func (s *UserService) GenerateToken(id string) (string, error) {
+	return s.generateJWT(id)
 }
 
 func (s *UserService) Delete(ctx context.Context, req *user.DeleteRequest) error {
 	u, err := s.repo.GetByEmail(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return user.ErrUserNotFounded
+			return user.ErrUserNotFound
 		}
 
 		return fmt.Errorf("failed to get user: %w", err)

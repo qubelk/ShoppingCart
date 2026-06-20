@@ -22,7 +22,7 @@ func validateEmail(email string) error {
 
 func validatePassword(pass string) error {
 	if len(pass) < 8 {
-		return ErrToShortPassword
+		return ErrTooShortPassword
 	}
 
 	hasUpper := regexp.MustCompile("[A-Z]").MatchString(pass)

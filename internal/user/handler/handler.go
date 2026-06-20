@@ -31,7 +31,7 @@ func respondError(ctx *gin.Context, code int, err error) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "invalid email",
 		})
-	case errors.Is(err, user.ErrToShortPassword):
+	case errors.Is(err, user.ErrTooShortPassword):
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "password is to short",
 		})
@@ -39,7 +39,7 @@ func respondError(ctx *gin.Context, code int, err error) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "password is to weak",
 		})
-	case errors.Is(err, user.ErrUserNotFounded):
+	case errors.Is(err, user.ErrUserNotFound):
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"message": "user not founded",
 		})
@@ -79,12 +79,17 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		return
 	}
 
+	token, err := h.serv.GenerateToken(u.User.ID.String())
+	if err != nil {
+		respondError(ctx, http.StatusInternalServerError, err)
+	}
+
 	ctx.SetCookie(
 		"jwt-token",
-		u.Token,
+		token,
 		3600,
 		"/",
-		"localhost",
+		"",
 		false,
 		true,
 	)
