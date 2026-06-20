@@ -18,10 +18,10 @@ func setConfig(cfg *pgxpool.Config) {
 func createTable(ctx context.Context, pool *pgxpool.Pool) error {
 	createQuery := `
 	CREATE TABLE IF NOT EXISTS users (
-		id UUID PRIMARY KEY DEFAULT get_random_uuid()
-		email VARCHAR(255) UNIQUE NOT NULL
-		password VARCHAR(255) NOT NULL
-		name VARCHAR(100) NOT NULL
+		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+		email VARCHAR(255) UNIQUE NOT NULL,
+		password VARCHAR(255) NOT NULL,
+		name VARCHAR(100) NOT NULL,
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 	);`
 

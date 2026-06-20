@@ -14,7 +14,7 @@ func validateEmail(email string) error {
 	_, err := mail.ParseAddress(email)
 
 	if err != nil {
-		return err
+		return ErrInvalidEmail
 	}
 
 	return nil
@@ -22,7 +22,7 @@ func validateEmail(email string) error {
 
 func validatePassword(pass string) error {
 	if len(pass) < 8 {
-		return fmt.Errorf("password must be at least 8 character")
+		return ErrToShortPassword
 	}
 
 	hasUpper := regexp.MustCompile("[A-Z]").MatchString(pass)
@@ -30,7 +30,7 @@ func validatePassword(pass string) error {
 	hasDigit := regexp.MustCompile("[0-9]").MatchString(pass)
 
 	if !hasUpper || !hasLower || !hasDigit {
-		return fmt.Errorf("password must contains uppercase, lowercase and digit")
+		return ErrWeakPassword
 	}
 
 	return nil

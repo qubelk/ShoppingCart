@@ -6,20 +6,62 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
-	repo repository.UserRepository
+	repo   repository.UserRepository
+	jwtKey string
 }
 
 func New(repo repository.UserRepository) *UserService {
 	return &UserService{
 		repo: repo,
+		// JWT_SECRET_KEY environment variable located in .env file.
+		jwtKey: os.Getenv("JWT_SECRET_KEY"),
 	}
+}
+
+func (s *UserService) genereteJWT(id string) (string, error) {
+	claims := jwt.MapClaims{
+		"sub": id,
+		"iat": time.Now().Unix(),
+		"exp": time.Now().Add(time.Hour * 1).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(s.jwtKey)
+}
+
+func (s *UserService) ValidateJWT(tokenString string) (string, error) {
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+
+		return []byte(s.jwtKey), nil
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("invalid token: %w", err)
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		id, ok := claims["sub"].(string)
+		if !ok {
+			return "", fmt.Errorf("invalid token claims")
+		}
+
+		return id, nil
+	}
+
+	return "", fmt.Errorf("invalid token")
 }
 
 func (s *UserService) Register(ctx context.Context, req *user.RegisterRequest) (*user.RegisterResponse, error) {
@@ -33,7 +75,7 @@ func (s *UserService) Register(ctx context.Context, req *user.RegisterRequest) (
 	}
 
 	if existingUser != nil {
-		return nil, fmt.Errorf("user with this email already exists")
+		return nil, user.ErrEmailAlredyExist
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -53,7 +95,7 @@ func (s *UserService) GetProfile(ctx context.Context, id uuid.UUID) (*user.User,
 	u, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("user not founded")
+			return nil, user.ErrUserNotFounded
 		}
 
 		return nil, fmt.Errorf("failed to get user: %w", err)
@@ -70,7 +112,7 @@ func (s *UserService) Login(ctx context.Context, req *user.LoginRequest) (*user.
 	u, err := s.repo.GetByEmail(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("user not founded")
+			return nil, user.ErrUserNotFounded
 		}
 
 		return nil, fmt.Errorf("failed to get user: %w", err)
@@ -80,14 +122,19 @@ func (s *UserService) Login(ctx context.Context, req *user.LoginRequest) (*user.
 		return nil, fmt.Errorf("invalid password")
 	}
 
-	return &user.LoginResponse{User: *u}, nil
+	token, err := s.genereteJWT(u.ID.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate jwt token")
+	}
+
+	return &user.LoginResponse{Token: token, User: *u}, nil
 }
 
 func (s *UserService) Delete(ctx context.Context, req *user.DeleteRequest) error {
 	u, err := s.repo.GetByEmail(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return fmt.Errorf("user not founded")
+			return user.ErrUserNotFounded
 		}
 
 		return fmt.Errorf("failed to get user: %w", err)
