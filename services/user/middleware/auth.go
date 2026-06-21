@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"net/http"
-	"user/internal/user/service"
+	"user/internal/service"
 
 	"github.com/gin-gonic/gin"
 )

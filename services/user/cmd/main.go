@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"user/internal/handler"
+	"user/internal/repository"
+	"user/internal/service"
 	"user/internal/user"
-	"user/internal/user/handler"
-	"user/internal/user/repository"
-	"user/internal/user/service"
 	"user/middleware"
 
 	"github.com/gin-gonic/gin"
