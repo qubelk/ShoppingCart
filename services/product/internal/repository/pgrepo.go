@@ -31,7 +31,7 @@ func (pg *pgProductRepository) UpdateStock(ctx context.Context, id uuid.UUID) er
 	return err
 }
 
-func (pg *pgProductRepository) Create(ctx context.Context, p product.Product) error {
+func (pg *pgProductRepository) Create(ctx context.Context, p *product.Product) error {
 	createQuery := `
 		INSERT INTO products (id, title, description, price)
 		VALUES ($1, $2, $3)
