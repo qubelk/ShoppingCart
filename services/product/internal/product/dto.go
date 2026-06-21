@@ -3,8 +3,7 @@ package product
 import "github.com/google/uuid"
 
 type GetProductRequest struct {
-	ID    uuid.UUID `json:"id"`
-	Title string    `json:"title"`
+	ID uuid.UUID `json:"id"`
 }
 
 type SearchProductRequest struct {

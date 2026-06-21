@@ -17,12 +17,14 @@ func New(repo repository.ProductRepository) *ProductService {
 	}
 }
 
-func (ps *ProductService) Create(ctx context.Context, req product.CreateProductRequest) (*product.CreateProductResponse, error) {
+func (ps *ProductService) Create(ctx context.Context, req product.CreateProductRequest, owner string) (*product.CreateProductResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, fmt.Errorf("create product request failed validation: %w", err)
 	}
 
 	p := product.New(req.Title, req.Description, req.Price, req.Count)
+	p.Owner = owner
+
 	if err := ps.repo.Create(ctx, p); err != nil {
 		return nil, fmt.Errorf("failed to create product: %w", err)
 	}

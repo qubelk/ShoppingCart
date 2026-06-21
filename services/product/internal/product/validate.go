@@ -57,3 +57,7 @@ func (r *CreateProductRequest) Validate() error {
 
 	return g.Wait()
 }
+
+func (r *SearchProductRequest) Validate() error {
+	return validateTitle(r.Title)
+}
