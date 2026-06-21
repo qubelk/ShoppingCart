@@ -11,6 +11,7 @@ type Product struct {
 	Title       string    `json:"title" db:"title"`
 	Description string    `json:"description" db:"descrption"`
 	Price       float64   `json:"price" db:"price"`
+	OwnerID     uuid.UUID `json:"owner_id"`
 	Stock       int       `json:"stock" db:"stock"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at"`
 }

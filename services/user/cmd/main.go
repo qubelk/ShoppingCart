@@ -8,11 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"user/auth/middleware"
 	"user/internal/handler"
 	"user/internal/repository"
 	"user/internal/service"
 	"user/internal/user"
-	"user/middleware"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -46,10 +46,10 @@ func main() {
 		users.POST("/auth", hand.Login)
 	}
 
-	users.Use(middleware.AuthMiddleware(serv))
+	users.Use(middleware.AuthMiddleware())
 	{
-		users.GET("/:id", hand.GetProfile)
-		users.DELETE("/:id", hand.Delete)
+		users.GET("/:login", hand.GetProfile)
+		users.DELETE("/:login", hand.Delete)
 	}
 
 	srv := http.Server{

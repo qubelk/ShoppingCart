@@ -8,7 +8,6 @@ import (
 	"user/internal/user"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type UserHandler struct {
@@ -104,22 +103,15 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 }
 
 func (h *UserHandler) GetProfile(ctx *gin.Context) {
-	id, exists := ctx.Get("id")
+	login, exists := ctx.Get("login")
 	if !exists {
-		err := errors.New("invalid user id")
+		err := errors.New("invalid user login")
 		respondError(ctx, err)
 		user.LogError(err)
 		return
 	}
 
-	userID, err := uuid.Parse(id.(string))
-	if err != nil {
-		respondError(ctx, err)
-		user.LogError(err)
-		return
-	}
-
-	u, err := h.serv.GetProfile(ctx, userID)
+	u, err := h.serv.GetProfile(ctx, login.(string))
 	if err != nil {
 		respondError(ctx, err)
 		user.LogError(err)

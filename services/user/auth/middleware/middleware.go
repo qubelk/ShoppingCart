@@ -2,13 +2,14 @@ package middleware
 
 import (
 	"net/http"
-	"user/internal/service"
+	"user/auth"
 
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(userService *service.UserService) gin.HandlerFunc {
+func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		auth := auth.New()
 		token, err := ctx.Cookie("jwt-token")
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -17,7 +18,7 @@ func AuthMiddleware(userService *service.UserService) gin.HandlerFunc {
 			return
 		}
 
-		id, err := userService.ValidateJWT(token)
+		login, err := auth.ValidateJWT(token)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"message": "invalid authorization token",
@@ -25,7 +26,7 @@ func AuthMiddleware(userService *service.UserService) gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set("id", id)
+		ctx.Set("login", login)
 		ctx.Next()
 	}
 }

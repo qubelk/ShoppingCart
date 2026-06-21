@@ -1,5 +1,11 @@
 package user
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 type RegisterRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -8,12 +14,11 @@ type RegisterRequest struct {
 
 type LoginRequest struct {
 	Login    string `json:"login"`
-	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 type DeleteRequest struct {
-	Email    string `json:"email"`
+	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 
@@ -23,4 +28,10 @@ type RegisterResponse struct {
 
 type LoginResponse struct {
 	User User `json:"user"`
+}
+
+type UserResponse struct {
+	ID        uuid.UUID `json:"id,omitempty"`
+	Login     string    `json:"login"`
+	CreatedAt time.Time `json:"created_at"`
 }

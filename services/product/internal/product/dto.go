@@ -30,5 +30,6 @@ type CreateProductResponse struct {
 }
 
 type DeleteProductRequest struct {
-	ID uuid.UUID `json:"id"`
+	ID      uuid.UUID `json:"id"`
+	OwnerID uuid.UUID `json:"owner_id"`
 }

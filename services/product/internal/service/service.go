@@ -49,5 +49,5 @@ func (ps *ProductService) GetProduct(ctx context.Context, req *product.GetProduc
 }
 
 func (ps *ProductService) Delete(ctx context.Context, req *product.DeleteProductRequest) error {
-	return ps.repo.Delete(ctx, req.ID)
+	return ps.repo.Delete(ctx, req.ID, req.OwnerID)
 }

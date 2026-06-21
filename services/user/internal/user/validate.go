@@ -53,10 +53,6 @@ func (r *LoginRequest) Validate() error {
 	})
 
 	g.Go(func() error {
-		return validateEmail(r.Email)
-	})
-
-	g.Go(func() error {
 		return validatePassword(r.Password)
 	})
 

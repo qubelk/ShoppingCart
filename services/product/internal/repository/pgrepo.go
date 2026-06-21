@@ -15,30 +15,51 @@ type pgProductRepository struct {
 	pool *pgxpool.Pool
 }
 
-func (pg *pgProductRepository) UpdateStock(ctx context.Context, id uuid.UUID) error {
+func (pg *pgProductRepository) AddToStock(ctx context.Context, id uuid.UUID, count int) error {
 	updateQuery := `
 		UPDATE products
-		SET stock = stock + 1
-		WHERE id = $1
+		SET stock = stock + $1
+		WHERE id = $2
 	`
 
 	_, err := pg.pool.Exec(
 		ctx,
 		updateQuery,
+		count,
 		id,
 	)
 
 	return err
 }
 
+func (pg *pgProductRepository) GetFromStock(ctx context.Context, id uuid.UUID, count int) error {
+	updateQuery := `
+		UPDATE products
+		SET stock = stock - $1
+		WHERE id = $2
+			AND stock >= $1;
+	`
+
+	tag, err := pg.pool.Exec(ctx, updateQuery, id)
+	if err != nil {
+		return fmt.Errorf("failed to get products with ID %s: %w", id, err)
+	}
+
+	if tag.RowsAffected() == 0 {
+		return product.ErrProductNotFound
+	}
+
+	return nil
+}
+
 func (pg *pgProductRepository) Create(ctx context.Context, p *product.Product) error {
 	createQuery := `
-		INSERT INTO products (id, title, description, price)
+		INSERT INTO products (id, owner_id, title, description, price)
 		VALUES ($1, $2, $3)
 		RETURNING created_at
 	`
 
-	err := pg.UpdateStock(ctx, p.ID)
+	err := pg.AddToStock(ctx, p.ID, 1)
 	if err != nil {
 		return fmt.Errorf("failed to update stock: %w", err)
 	}
@@ -47,6 +68,7 @@ func (pg *pgProductRepository) Create(ctx context.Context, p *product.Product) e
 		ctx,
 		createQuery,
 		p.ID,
+		p.OwnerID,
 		p.Title,
 		p.Description,
 		p.Price,
@@ -57,7 +79,7 @@ func (pg *pgProductRepository) Create(ctx context.Context, p *product.Product) e
 
 func (pg *pgProductRepository) GetByID(ctx context.Context, id uuid.UUID) (*product.Product, error) {
 	getQuery := `
-		SELECT (id, title, description, price, stock, created_at) FROM products WHERE id = $1
+		SELECT (id, owner_id, title, description, price, stock, created_at) FROM products WHERE id = $1
 	`
 
 	var p product.Product
@@ -65,7 +87,7 @@ func (pg *pgProductRepository) GetByID(ctx context.Context, id uuid.UUID) (*prod
 		ctx,
 		getQuery,
 		id,
-	).Scan(&p.ID, &p.Title, &p.Description, &p.Price, &p.Stock, &p.CreatedAt)
+	).Scan(&p.ID, &p.OwnerID, &p.Title, &p.Description, &p.Price, &p.Stock, &p.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -80,7 +102,7 @@ func (pg *pgProductRepository) GetByID(ctx context.Context, id uuid.UUID) (*prod
 
 func (pg *pgProductRepository) GetByTitle(ctx context.Context, title string) ([]product.Product, error) {
 	getQuery := `
-		SELECT (id, title, description, price, stock, created_at) FROM products WHERE title = $1
+		SELECT (id, owner_id, title, description, price, stock, created_at) FROM products WHERE title = $1
 	`
 
 	rows, err := pg.pool.Query(
@@ -100,19 +122,19 @@ func (pg *pgProductRepository) GetByTitle(ctx context.Context, title string) ([]
 	var products []product.Product
 	for rows.Next() {
 		var p product.Product
-		rows.Scan(&p.ID, &p.Title, &p.Description, &p.Price, &p.Stock, &p.CreatedAt)
+		rows.Scan(&p.ID, &p.OwnerID, &p.Title, &p.Description, &p.Price, &p.Stock, &p.CreatedAt)
 		products = append(products, p)
 	}
 
 	return products, nil
 }
 
-func (pg *pgProductRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (pg *pgProductRepository) Delete(ctx context.Context, id, ownerID uuid.UUID) error {
 	deleteQuery := `
-		DELETE FROM products WHERE id = $1
+		DELETE FROM products WHERE id = $1 AND owner_id = $2
 	`
 
-	tag, err := pg.pool.Exec(ctx, deleteQuery, id)
+	tag, err := pg.pool.Exec(ctx, deleteQuery, id, ownerID)
 	if err != nil {
 		return fmt.Errorf("failed to delete product with ID %s: %w", id, err)
 	}
