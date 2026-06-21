@@ -94,10 +94,6 @@ func (s *UserService) Register(ctx context.Context, req *user.RegisterRequest) (
 func (s *UserService) GetProfile(ctx context.Context, id uuid.UUID) (*user.User, error) {
 	u, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, user.ErrUserNotFound
-		}
-
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
@@ -109,12 +105,8 @@ func (s *UserService) Login(ctx context.Context, req *user.LoginRequest) (*user.
 		return nil, fmt.Errorf("failed to validate login request: %w", err)
 	}
 
-	u, err := s.repo.GetByEmail(ctx, req.Email)
+	u, err := s.repo.GetByLogin(ctx, req.Login)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, user.ErrUserNotFound
-		}
-
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
@@ -132,10 +124,6 @@ func (s *UserService) GenerateToken(id string) (string, error) {
 func (s *UserService) Delete(ctx context.Context, req *user.DeleteRequest) error {
 	u, err := s.repo.GetByEmail(ctx, req.Email)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return user.ErrUserNotFound
-		}
-
 		return fmt.Errorf("failed to get user: %w", err)
 	}
 

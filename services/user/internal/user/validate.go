@@ -1,13 +1,22 @@
 package user
 
 import (
-	"fmt"
 	"net/mail"
 	"regexp"
+
+	"golang.org/x/sync/errgroup"
 )
 
 type Request interface {
 	LoginRequest | RegisterRequest
+}
+
+func validateLogin(login string) error {
+	if len(login) < 3 {
+		return ErrInvalidLogin
+	}
+
+	return nil
 }
 
 func validateEmail(email string) error {
@@ -37,25 +46,37 @@ func validatePassword(pass string) error {
 }
 
 func (r *LoginRequest) Validate() error {
-	if err := validateEmail(r.Email); err != nil {
-		return fmt.Errorf("email validation failed: %w", err)
-	}
+	var g errgroup.Group
 
-	if err := validatePassword(r.Password); err != nil {
-		return fmt.Errorf("password validation failed: %w", err)
-	}
+	g.Go(func() error {
+		return validateLogin(r.Login)
+	})
 
-	return nil
+	g.Go(func() error {
+		return validateEmail(r.Email)
+	})
+
+	g.Go(func() error {
+		return validatePassword(r.Password)
+	})
+
+	return g.Wait()
 }
 
 func (r *RegisterRequest) Validate() error {
-	if err := validateEmail(r.Email); err != nil {
-		return fmt.Errorf("email validation failed: %w", err)
-	}
+	var g errgroup.Group
 
-	if err := validatePassword(r.Password); err != nil {
-		return fmt.Errorf("password validation failed: %w", err)
-	}
+	g.Go(func() error {
+		return validateLogin(r.Login)
+	})
+
+	g.Go(func() error {
+		return validateEmail(r.Email)
+	})
+
+	g.Go(func() error {
+		return validatePassword(r.Password)
+	})
 
 	return nil
 }

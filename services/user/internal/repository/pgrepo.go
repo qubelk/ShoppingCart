@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"user/internal/user"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -32,6 +34,29 @@ func (p *pgUserRepository) Create(ctx context.Context, user *user.User) error {
 	return err
 }
 
+func (p *pgUserRepository) GetByLogin(ctx context.Context, login string) (*user.User, error) {
+	getQuery := `
+		SELECT id, email, password, login, created_at FROM users WHERE login = $1
+	`
+
+	var u user.User
+	err := p.pool.QueryRow(
+		ctx,
+		getQuery,
+		login,
+	).Scan(&u.ID, &u.Email, &u.Password, &u.Login, &u.CreatedAt)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, user.ErrUserNotFound
+		}
+
+		return nil, fmt.Errorf("failed to find user with login %s: %w", login, err)
+	}
+
+	return &u, nil
+}
+
 func (p *pgUserRepository) GetByEmail(ctx context.Context, email string) (*user.User, error) {
 	getQuery := `
 		SELECT id, email, password, login, created_at FROM users WHERE email = $1
@@ -45,6 +70,10 @@ func (p *pgUserRepository) GetByEmail(ctx context.Context, email string) (*user.
 	).Scan(&u.ID, &u.Email, &u.Password, &u.Login, &u.CreatedAt)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, user.ErrUserNotFound
+		}
+
 		return nil, fmt.Errorf("failed to get user by email: %w", err)
 	}
 
@@ -64,7 +93,11 @@ func (p *pgUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*user.Use
 	).Scan(&u.ID, &u.Email, &u.Password, &u.Login, &u.CreatedAt)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user by id: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, user.ErrUserNotFound
+		}
+
+		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
 
 	return &u, nil
@@ -79,7 +112,7 @@ func (p *pgUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("user with ID %s not found", id)
+		return user.ErrUserNotFound
 	}
 
 	return nil

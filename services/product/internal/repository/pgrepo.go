@@ -69,7 +69,7 @@ func (pg *pgProductRepository) GetByID(ctx context.Context, id uuid.UUID) (*prod
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("product with ID %s not exists", id)
+			return nil, product.ErrProductNotExists
 		}
 
 		return nil, fmt.Errorf("failed to get product with ID %s: %w", id, err)
@@ -91,7 +91,7 @@ func (pg *pgProductRepository) GetByTitle(ctx context.Context, title string) ([]
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("products with title %s not exists", title)
+			return nil, product.ErrProductNotExists
 		}
 		return nil, fmt.Errorf("failed to get products with title %s: %w", title, err)
 	}
@@ -118,7 +118,7 @@ func (pg *pgProductRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 
 	if tag.RowsAffected() == 0 {
-		return fmt.Errorf("product with ID %s not found: %w", id, err)
+		return product.ErrProductNotFound
 	}
 
 	return nil
