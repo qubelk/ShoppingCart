@@ -8,7 +8,7 @@ type GetProductRequest struct {
 }
 
 type SearchProductRequest struct {
-	Title string `json:"title"`
+	Title string `json:"title" from:"title"`
 }
 
 type SearchProductsResponse struct {
@@ -20,10 +20,10 @@ type GetProductResponse struct {
 }
 
 type CreateProductRequest struct {
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	Count       int     `json:"count"`
+	Title       string  `json:"title" binding:"required"`
+	Description string  `json:"description" binding:"required"`
+	Price       float64 `json:"price" binding:"required"`
+	Count       int     `json:"count" binding:"required"`
 }
 
 type CreateProductResponse struct {
