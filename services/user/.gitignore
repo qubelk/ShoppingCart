@@ -30,9 +30,6 @@ go.work.sum
 # index.html for gui testing
 index.html
 
-# binary
-user
-
 # logs
 logs/
 

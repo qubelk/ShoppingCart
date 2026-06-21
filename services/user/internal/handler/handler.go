@@ -41,7 +41,7 @@ func respondError(ctx *gin.Context, err error) {
 		})
 	case errors.Is(err, user.ErrUserNotFound):
 		ctx.JSON(http.StatusNotFound, gin.H{
-			"message": "user not founded",
+			"message": "user not found",
 		})
 	default:
 		ctx.JSON(http.StatusInternalServerError, gin.H{

@@ -73,13 +73,13 @@ func (p *pgUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*user.Use
 func (p *pgUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	deleteQuery := `DELETE FROM users WHERE id = $1`
 
-	res, err := p.pool.Exec(ctx, deleteQuery, id)
+	tag, err := p.pool.Exec(ctx, deleteQuery, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
 
-	if res.RowsAffected() == 0 {
-		return fmt.Errorf("user with ID %s not founded", id)
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("user with ID %s not found", id)
 	}
 
 	return nil
