@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"net/http"
-	"user/auth"
+	"pkg/auth"
 
 	"github.com/gin-gonic/gin"
 )

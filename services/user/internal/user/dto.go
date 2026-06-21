@@ -31,7 +31,7 @@ type LoginResponse struct {
 }
 
 type UserResponse struct {
-	ID        uuid.UUID `json:"id,omitempty"`
+	ID        uuid.UUID `json:"id"`
 	Login     string    `json:"login"`
 	CreatedAt time.Time `json:"created_at"`
 }

@@ -28,6 +28,14 @@ func validatePrice(price float64) error {
 	return nil
 }
 
+func validateCount(count int) error {
+	if count <= 0 {
+		return ErrInvalidCount
+	}
+
+	return nil
+}
+
 func (r *CreateProductRequest) Validate() error {
 	var g errgroup.Group
 
@@ -41,6 +49,10 @@ func (r *CreateProductRequest) Validate() error {
 
 	g.Go(func() error {
 		return validatePrice(r.Price)
+	})
+
+	g.Go(func() error {
+		return validateCount(r.Count)
 	})
 
 	return g.Wait()

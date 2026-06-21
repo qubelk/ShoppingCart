@@ -19,7 +19,7 @@ func createTable(ctx context.Context, pool *pgxpool.Pool) error {
 	createQuery := `
 	CREATE TABLE IF NOT EXISTS products (
 		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-		owner_id UUID PRIMARY KEY,
+		owner VARCHAR(255) NOT NULL,
 		title VARCHAR(255) NOT NULL,
 		description VARCHAR(1000) NOT NULL,
 		price DECIMAL(10,2) NOT NULL,

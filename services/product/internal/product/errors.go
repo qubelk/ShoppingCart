@@ -8,4 +8,5 @@ var (
 	ErrInvalidPrice       = errors.New("product price can't be negative")
 	ErrProductNotFound    = errors.New("product not found")
 	ErrProductNotExists   = errors.New("product not exists")
+	ErrInvalidCount       = errors.New("invalid count of product")
 )

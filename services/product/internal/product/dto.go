@@ -23,6 +23,7 @@ type CreateProductRequest struct {
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
+	Count       int     `json:"count"`
 }
 
 type CreateProductResponse struct {
@@ -30,6 +31,6 @@ type CreateProductResponse struct {
 }
 
 type DeleteProductRequest struct {
-	ID      uuid.UUID `json:"id"`
-	OwnerID uuid.UUID `json:"owner_id"`
+	ID    uuid.UUID `json:"id"`
+	Owner string    `json:"-"`
 }

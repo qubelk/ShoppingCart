@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"pkg/middleware"
 	"syscall"
 	"time"
-	"user/auth/middleware"
 	"user/internal/handler"
 	"user/internal/repository"
 	"user/internal/service"
@@ -42,7 +42,7 @@ func main() {
 
 	users := r.Group("/users")
 	{
-		users.POST("", hand.Register)
+		users.POST("/", hand.Register)
 		users.POST("/auth", hand.Login)
 	}
 

@@ -22,7 +22,7 @@ func (ps *ProductService) Create(ctx context.Context, req product.CreateProductR
 		return nil, fmt.Errorf("create product request failed validation: %w", err)
 	}
 
-	p := product.New(req.Title, req.Description, req.Price)
+	p := product.New(req.Title, req.Description, req.Price, req.Count)
 	if err := ps.repo.Create(ctx, p); err != nil {
 		return nil, fmt.Errorf("failed to create product: %w", err)
 	}
@@ -49,5 +49,5 @@ func (ps *ProductService) GetProduct(ctx context.Context, req *product.GetProduc
 }
 
 func (ps *ProductService) Delete(ctx context.Context, req *product.DeleteProductRequest) error {
-	return ps.repo.Delete(ctx, req.ID, req.OwnerID)
+	return ps.repo.Delete(ctx, req.ID, req.Owner)
 }
