@@ -72,3 +72,17 @@ func (r *RegisterRequest) Validate() error {
 
 	return g.Wait()
 }
+
+func (r *DeleteRequest) Validate() error {
+	var g errgroup.Group
+
+	g.Go(func() error {
+		return validateLogin(r.Login)
+	})
+
+	g.Go(func() error {
+		return validatePassword(r.Password)
+	})
+
+	return g.Wait()
+}
