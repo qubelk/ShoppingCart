@@ -5,7 +5,7 @@ import (
 )
 
 func validateTitle(title string) error {
-	if len(title) < 3 {
+	if len(title) < 3 || len(title) > 255 {
 		return ErrInvalidTitle
 	}
 
@@ -13,7 +13,7 @@ func validateTitle(title string) error {
 }
 
 func validateDescription(description string) error {
-	if description == "" {
+	if description == "" || len(description) > 1000 {
 		return ErrInvalidDescription
 	}
 
@@ -21,7 +21,7 @@ func validateDescription(description string) error {
 }
 
 func validatePrice(price float64) error {
-	if price < 0 {
+	if price <= 0 {
 		return ErrInvalidPrice
 	}
 

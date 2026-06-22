@@ -52,7 +52,7 @@ func (pg *pgProductRepository) GetFromStock(ctx context.Context, id uuid.UUID, c
 	return nil
 }
 
-func (pg *pgProductRepository) Create(ctx context.Context, p *product.Product, count int) error {
+func (pg *pgProductRepository) Create(ctx context.Context, p *product.Product) error {
 	createQuery := `
 		INSERT INTO products (id, owner, title, description, price, stock)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -72,7 +72,7 @@ func (pg *pgProductRepository) Create(ctx context.Context, p *product.Product, c
 		p.Title,
 		p.Description,
 		p.Price,
-		count,
+		p.Stock,
 	).Scan(&p.CreatedAt)
 
 	return fmt.Errorf("failed to create product: %w", err)
