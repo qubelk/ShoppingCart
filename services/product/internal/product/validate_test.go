@@ -1,80 +1,85 @@
 package product
 
 import (
-	"pkg/tests"
+	"pkg/testutil"
 	"strings"
 	"testing"
 )
 
-func TestValidateTitle(t *testing.T) {
+func longString(length int) string {
 	var b strings.Builder
-	for range 256 {
+	for range length {
 		b.WriteString("a")
 	}
+	return b.String()
+}
 
-	test := []tests.TestCase{
+func TestValidateTitle(t *testing.T) {
+	tests := []testutil.TestCase{
 		{Name: "valid merged", Data: "test_product", WantErr: false},
 		{Name: "valid splitted", Data: "test product", WantErr: false},
 		{Name: "invalid short", Data: "p", WantErr: true},
 		{Name: "invalid empty", Data: "", WantErr: true},
 		{Name: "invalid space", Data: " ", WantErr: true},
 		{Name: "invalid tab", Data: "	", WantErr: true},
-		{Name: "invalid to long", Data: b.String(), WantErr: true},
+		{Name: "invalid too long", Data: longString(256), WantErr: true},
 	}
 
-	tests.UnitTest(t, test, func(a any) error {
-		return validateTitle(a.(string))
-	})
+	helper := testutil.New(t)
+	for _, tt := range tests {
+		helper.RunTest(tt, func() error {
+			return validateTitle(tt.Data.(string))
+		})
+	}
 }
 
 func TestValidateDescription(t *testing.T) {
-	var b strings.Builder
-	for range 1001 {
-		b.WriteString("a")
-	}
-
-	test := []tests.TestCase{
+	tests := []testutil.TestCase{
 		{Name: "valid", Data: "test", WantErr: false},
 		{Name: "invalid empty", Data: "", WantErr: true},
-		{Name: "invalid to long", Data: b.String(), WantErr: true},
+		{Name: "invalid too long", Data: longString(1001), WantErr: true},
 	}
 
-	tests.UnitTest(t, test, func(a any) error {
-		return validateDescription(a.(string))
-	})
+	helper := testutil.New(t)
+	for _, tt := range tests {
+		helper.RunTest(tt, func() error {
+			return validateDescription(tt.Data.(string))
+		})
+	}
 }
 
 func TestValidatePrice(t *testing.T) {
-	test := []tests.TestCase{
+	tests := []testutil.TestCase{
 		{Name: "valid", Data: 9.99, WantErr: false},
 		{Name: "invalid zero", Data: 0.0, WantErr: true},
 		{Name: "invalid negative", Data: -1.1, WantErr: true},
 	}
 
-	tests.UnitTest(t, test, func(a any) error {
-		return validatePrice(a.(float64))
-	})
+	helper := testutil.New(t)
+	for _, tt := range tests {
+		helper.RunTest(tt, func() error {
+			return validatePrice(tt.Data.(float64))
+		})
+	}
 }
 
 func TestValidateCount(t *testing.T) {
-	test := []tests.TestCase{
+	tests := []testutil.TestCase{
 		{Name: "valid", Data: 1, WantErr: false},
 		{Name: "invalid zero", Data: 0, WantErr: true},
 		{Name: "invalid negative", Data: -1, WantErr: true},
 	}
 
-	tests.UnitTest(t, test, func(a any) error {
-		return validateCount(a.(int))
-	})
+	helper := testutil.New(t)
+	for _, tt := range tests {
+		helper.RunTest(tt, func() error {
+			return validateCount(tt.Data.(int))
+		})
+	}
 }
 
-func TestValidateCreateProductRequest(t *testing.T) {
-	var b strings.Builder
-	for range 1001 {
-		b.WriteString("a")
-	}
-
-	test := []tests.TestCase{
+func TestCreateProductRequestValidate(t *testing.T) {
+	tests := []testutil.TestCase{
 		{
 			Name: "valid",
 			Data: &CreateProductRequest{
@@ -108,7 +113,7 @@ func TestValidateCreateProductRequest(t *testing.T) {
 		{
 			Name: "invalid: too long title",
 			Data: &CreateProductRequest{
-				Title:       b.String(),
+				Title:       longString(256),
 				Description: "product description",
 				Price:       9.99,
 				Count:       1,
@@ -129,7 +134,7 @@ func TestValidateCreateProductRequest(t *testing.T) {
 			Name: "invalid: too long description",
 			Data: &CreateProductRequest{
 				Title:       "product title",
-				Description: b.String(),
+				Description: longString(1001),
 				Price:       9.99,
 				Count:       1,
 			},
@@ -177,18 +182,16 @@ func TestValidateCreateProductRequest(t *testing.T) {
 		},
 	}
 
-	tests.UnitTest(t, test, func(a any) error {
-		return a.(*CreateProductRequest).Validate()
-	})
+	helper := testutil.New(t)
+	for _, tt := range tests {
+		helper.RunTest(tt, func() error {
+			return tt.Data.(*CreateProductRequest).Validate()
+		})
+	}
 }
 
-func TestValidateSearchProductRequest(t *testing.T) {
-	var b strings.Builder
-	for range 256 {
-		b.WriteString("a")
-	}
-
-	test := []tests.TestCase{
+func TestSearchProductRequestValidate(t *testing.T) {
+	tests := []testutil.TestCase{
 		{
 			Name: "valid",
 			Data: &SearchProductRequest{
@@ -213,13 +216,16 @@ func TestValidateSearchProductRequest(t *testing.T) {
 		{
 			Name: "invalid: too long title",
 			Data: &SearchProductRequest{
-				Title: b.String(),
+				Title: longString(256),
 			},
 			WantErr: true,
 		},
 	}
 
-	tests.UnitTest(t, test, func(a any) error {
-		return a.(*SearchProductRequest).Validate()
-	})
+	helper := testutil.New(t)
+	for _, tt := range tests {
+		helper.RunTest(tt, func() error {
+			return tt.Data.(*SearchProductRequest).Validate()
+		})
+	}
 }

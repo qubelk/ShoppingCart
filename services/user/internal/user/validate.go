@@ -7,12 +7,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Request interface {
-	LoginRequest | RegisterRequest
-}
-
 func validateLogin(login string) error {
-	if len(login) < 3 {
+	if len(login) < 3 || len(login) > 100 {
 		return ErrInvalidLogin
 	}
 
@@ -22,7 +18,7 @@ func validateLogin(login string) error {
 func validateEmail(email string) error {
 	_, err := mail.ParseAddress(email)
 
-	if err != nil {
+	if err != nil || len(email) > 255 {
 		return ErrInvalidEmail
 	}
 
@@ -30,7 +26,7 @@ func validateEmail(email string) error {
 }
 
 func validatePassword(pass string) error {
-	if len(pass) < 8 {
+	if len(pass) < 8 || len(pass) > 255 {
 		return ErrTooShortPassword
 	}
 
@@ -74,5 +70,5 @@ func (r *RegisterRequest) Validate() error {
 		return validatePassword(r.Password)
 	})
 
-	return nil
+	return g.Wait()
 }
