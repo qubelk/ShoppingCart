@@ -9,6 +9,7 @@ import (
 
 	"pkg/auth"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -87,6 +88,10 @@ func (s *UserService) Login(ctx context.Context, req *user.LoginRequest) (*user.
 }
 
 func (s *UserService) Delete(ctx context.Context, req *user.DeleteRequest) error {
+	if err := req.Validate(); err != nil {
+		return err
+	}
+
 	u, err := s.repo.GetByLogin(ctx, req.Login)
 	if err != nil {
 		return fmt.Errorf("failed to get user: %w", err)
@@ -103,6 +108,6 @@ func (s *UserService) Delete(ctx context.Context, req *user.DeleteRequest) error
 	return nil
 }
 
-func (s *UserService) GenerateToken(id string) (string, error) {
-	return auth.New().GenerateJWT(id)
+func (s *UserService) GenerateToken(id uuid.UUID, login string) (string, error) {
+	return auth.New().GenerateJWT(id, login)
 }

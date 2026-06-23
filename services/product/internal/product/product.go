@@ -11,17 +11,18 @@ type Product struct {
 	Title       string    `json:"title" db:"title"`
 	Description string    `json:"description" db:"description"`
 	Price       float64   `json:"price" db:"price"`
-	Owner       string    `json:"owner" db:"owner"`
+	OwnerID     uuid.UUID `json:"owner_id" db:"owner_id"`
 	Stock       int       `json:"stock" db:"stock"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at"`
 }
 
-func New(title, description string, price float64, count int) *Product {
+func New(title, description string, price float64, count int, ownerID uuid.UUID) *Product {
 	return &Product{
 		ID:          uuid.New(),
 		Title:       title,
 		Description: description,
 		Price:       price,
+		OwnerID:     ownerID,
 		Stock:       count,
 	}
 }

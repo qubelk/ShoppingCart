@@ -82,7 +82,7 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	token, err := h.serv.GenerateToken(u.User.ID.String())
+	token, err := h.serv.GenerateToken(u.User.ID, u.User.Login)
 	if err != nil {
 		respondError(ctx, err)
 		user.LogError(err)
@@ -92,7 +92,7 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	ctx.SetCookie(
 		"jwt-token",
 		token,
-		3600,
+		43200,
 		"/",
 		"",
 		false,

@@ -27,11 +27,11 @@ func respondError(ctx *gin.Context, err error) {
 	case errors.Is(err, product.ErrInvalidDescription):
 		fallthrough
 	case errors.Is(err, product.ErrInvalidPrice):
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": err})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 	case errors.Is(err, product.ErrProductNotFound):
 		fallthrough
 	case errors.Is(err, product.ErrProductNotExists):
-		ctx.JSON(http.StatusNotFound, gin.H{"message": err})
+		ctx.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
 	default:
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "internal server error",
@@ -40,9 +40,15 @@ func respondError(ctx *gin.Context, err error) {
 }
 
 func (ph *ProductHandler) Create(ctx *gin.Context) {
-	login, exists := ctx.Get("login")
+	userIDInterface, exists := ctx.Get("user_id")
 	if !exists {
-		ctx.JSON(http.StatusUnauthorized, "unauthorized")
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+		return
+	}
+
+	userID, ok := userIDInterface.(uuid.UUID)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "invalid user ID"})
 		return
 	}
 
@@ -53,7 +59,7 @@ func (ph *ProductHandler) Create(ctx *gin.Context) {
 		return
 	}
 
-	res, err := ph.serv.Create(ctx, req, login.(string))
+	res, err := ph.serv.Create(ctx, req, userID)
 	if err != nil {
 		respondError(ctx, err)
 		product.LogError(err)
@@ -114,11 +120,20 @@ func (ph *ProductHandler) GetProduct(ctx *gin.Context) {
 }
 
 func (ph *ProductHandler) Delete(ctx *gin.Context) {
-	login, exists := ctx.Get("login")
+	userIDInterface, exists := ctx.Get("user_id")
 	if !exists {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"message": "unauthorized",
 		})
+		return
+	}
+
+	userID, ok := userIDInterface.(uuid.UUID)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"message": "invalid user ID",
+		})
+		return
 	}
 
 	idStr := ctx.Param("id")
@@ -133,7 +148,7 @@ func (ph *ProductHandler) Delete(ctx *gin.Context) {
 
 	var req product.DeleteProductRequest
 	req.ID = id
-	req.Owner = login.(string)
+	req.OwnerID = userID
 
 	if err := ph.serv.Delete(ctx, &req); err != nil {
 		respondError(ctx, err)

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"product/internal/product"
 	"product/internal/repository"
+
+	"github.com/google/uuid"
 )
 
 type ProductService struct {
@@ -17,13 +19,12 @@ func New(repo repository.ProductRepository) *ProductService {
 	}
 }
 
-func (ps *ProductService) Create(ctx context.Context, req product.CreateProductRequest, owner string) (*product.CreateProductResponse, error) {
+func (ps *ProductService) Create(ctx context.Context, req product.CreateProductRequest, ownerID uuid.UUID) (*product.CreateProductResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, fmt.Errorf("create product request failed validation: %w", err)
 	}
 
-	p := product.New(req.Title, req.Description, req.Price, req.Count)
-	p.Owner = owner
+	p := product.New(req.Title, req.Description, req.Price, req.Count, ownerID)
 
 	if err := ps.repo.Create(ctx, p); err != nil {
 		return nil, fmt.Errorf("failed to create product: %w", err)
@@ -51,5 +52,5 @@ func (ps *ProductService) GetProduct(ctx context.Context, req *product.GetProduc
 }
 
 func (ps *ProductService) Delete(ctx context.Context, req *product.DeleteProductRequest) error {
-	return ps.repo.Delete(ctx, req.ID, req.Owner)
+	return ps.repo.Delete(ctx, req.ID, req.OwnerID)
 }

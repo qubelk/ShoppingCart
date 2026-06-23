@@ -12,7 +12,7 @@ type ProductRepository interface {
 	Create(ctx context.Context, p *product.Product) error
 	GetByID(ctx context.Context, id uuid.UUID) (*product.Product, error)
 	GetByTitle(ctx context.Context, title string) ([]product.Product, error)
-	Delete(ctx context.Context, id uuid.UUID, owner string) error
+	Delete(ctx context.Context, id, ownerID uuid.UUID) error
 }
 
 func New(pool *pgxpool.Pool) ProductRepository {
