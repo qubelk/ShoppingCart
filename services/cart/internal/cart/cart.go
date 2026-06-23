@@ -17,7 +17,7 @@ type Cart struct {
 	UserID    uuid.UUID  `json:"user_id"`
 	Items     []CartItem `json:"items"`
 	Total     float64    `json:"total"`
-	UpdatedAt *time.Time `json:"updated_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
 }
 
 const (

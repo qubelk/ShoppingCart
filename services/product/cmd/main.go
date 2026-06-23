@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"pkg/logs"
 	"pkg/middleware"
 	"product/internal/handler"
-	"product/internal/product"
 	"product/internal/repository"
 	"product/internal/service"
 	"syscall"
@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-	product.LogInfo("Log")
+	logs.Init()
 
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
@@ -29,6 +29,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
 	repo := repository.New(db)
 	serv := service.New(repo)
@@ -46,7 +47,7 @@ func main() {
 	}
 
 	srv := http.Server{
-		Addr:    ":3000",
+		Addr:    ":3002",
 		Handler: r,
 	}
 

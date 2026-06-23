@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"pkg/logs"
 	"product/internal/product"
 	"product/internal/service"
 
@@ -40,13 +41,13 @@ func respondError(ctx *gin.Context, err error) {
 }
 
 func (ph *ProductHandler) Create(ctx *gin.Context) {
-	userIDInterface, exists := ctx.Get("user_id")
-	if !exists {
+	userID, ok := ctx.Get("user_id")
+	if !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 		return
 	}
 
-	userID, ok := userIDInterface.(uuid.UUID)
+	id, ok := userID.(uuid.UUID)
 	if !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "invalid user ID"})
 		return
@@ -55,14 +56,14 @@ func (ph *ProductHandler) Create(ctx *gin.Context) {
 	var req product.CreateProductRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		respondError(ctx, err)
-		product.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
-	res, err := ph.serv.Create(ctx, req, userID)
+	res, err := ph.serv.Create(ctx.Request.Context(), req, id)
 	if err != nil {
 		respondError(ctx, err)
-		product.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
@@ -73,7 +74,7 @@ func (ph *ProductHandler) SearchProducts(ctx *gin.Context) {
 	var req product.SearchProductRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		respondError(ctx, err)
-		product.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
@@ -84,10 +85,10 @@ func (ph *ProductHandler) SearchProducts(ctx *gin.Context) {
 		return
 	}
 
-	res, err := ph.serv.SearchProducts(ctx, &req)
+	res, err := ph.serv.SearchProducts(ctx.Request.Context(), &req)
 	if err != nil {
 		respondError(ctx, err)
-		product.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
@@ -101,14 +102,14 @@ func (ph *ProductHandler) GetProduct(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "invalid product id",
 		})
-		product.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
 	var req product.GetProductRequest
 	req.ID = id
 
-	res, err := ph.serv.GetProduct(ctx, &req)
+	res, err := ph.serv.GetProduct(ctx.Request.Context(), &req)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"message": "product with this id not found",
@@ -120,8 +121,8 @@ func (ph *ProductHandler) GetProduct(ctx *gin.Context) {
 }
 
 func (ph *ProductHandler) Delete(ctx *gin.Context) {
-	userIDInterface, exists := ctx.Get("user_id")
-	if !exists {
+	userIDInterface, ok := ctx.Get("user_id")
+	if !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{
 			"message": "unauthorized",
 		})
@@ -142,7 +143,7 @@ func (ph *ProductHandler) Delete(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "invalid product id",
 		})
-		product.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
@@ -150,9 +151,9 @@ func (ph *ProductHandler) Delete(ctx *gin.Context) {
 	req.ID = id
 	req.OwnerID = userID
 
-	if err := ph.serv.Delete(ctx, &req); err != nil {
+	if err := ph.serv.Delete(ctx.Request.Context(), &req); err != nil {
 		respondError(ctx, err)
-		product.LogError(err)
+		logs.LogError(err)
 		return
 	}
 

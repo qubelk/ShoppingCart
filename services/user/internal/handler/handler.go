@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"pkg/logs"
 	"user/internal/service"
 	"user/internal/user"
 
@@ -53,14 +54,14 @@ func (h *UserHandler) Register(ctx *gin.Context) {
 	var req user.RegisterRequest
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
 		respondError(ctx, err)
-		user.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
-	u, err := h.serv.Register(ctx, &req)
+	u, err := h.serv.Register(ctx.Request.Context(), &req)
 	if err != nil {
 		respondError(ctx, err)
-		user.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
@@ -71,21 +72,21 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 	var req user.LoginRequest
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
 		respondError(ctx, err)
-		user.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
-	u, err := h.serv.Login(ctx, &req)
+	u, err := h.serv.Login(ctx.Request.Context(), &req)
 	if err != nil {
 		respondError(ctx, err)
-		user.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
 	token, err := h.serv.GenerateToken(u.User.ID, u.User.Login)
 	if err != nil {
 		respondError(ctx, err)
-		user.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
@@ -103,18 +104,18 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 }
 
 func (h *UserHandler) GetProfile(ctx *gin.Context) {
-	login, exists := ctx.Get("login")
-	if !exists {
+	login, ok := ctx.Get("login")
+	if !ok {
 		err := errors.New("invalid user login")
 		respondError(ctx, err)
-		user.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
-	u, err := h.serv.GetProfile(ctx, login.(string))
+	u, err := h.serv.GetProfile(ctx.Request.Context(), login.(string))
 	if err != nil {
 		respondError(ctx, err)
-		user.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
@@ -125,13 +126,13 @@ func (h *UserHandler) Delete(ctx *gin.Context) {
 	var req user.DeleteRequest
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
 		respondError(ctx, err)
-		user.LogError(err)
+		logs.LogError(err)
 		return
 	}
 
-	if err := h.serv.Delete(ctx, &req); err != nil {
+	if err := h.serv.Delete(ctx.Request.Context(), &req); err != nil {
 		respondError(ctx, err)
-		user.LogError(err)
+		logs.LogError(err)
 		return
 	}
 

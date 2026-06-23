@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/valkey-io/valkey-go"
 )
 
 type CartRepository interface {
@@ -16,4 +17,10 @@ type CartRepository interface {
 	UpdateQuantity(ctx context.Context, userID, productID uuid.UUID, q int) error
 	ClearCart(ctx context.Context, userID uuid.UUID) error
 	GetCartTTL(ctx context.Context, userID uuid.UUID) (time.Duration, error)
+}
+
+func New(conn valkey.Client) CartRepository {
+	return &valkeyCartRepository{
+		conn: conn,
+	}
 }
