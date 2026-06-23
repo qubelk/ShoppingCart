@@ -1,7 +1,7 @@
 package product
 
 import (
-	"pkg/testutil"
+	"pkg/testutils"
 	"strings"
 	"testing"
 )
@@ -15,7 +15,7 @@ func longString(length int) string {
 }
 
 func TestValidateTitle(t *testing.T) {
-	tests := []testutil.TestCase{
+	tests := []testutils.TestCase{
 		{Name: "valid merged", Data: "test_product", WantErr: false},
 		{Name: "valid splitted", Data: "test product", WantErr: false},
 		{Name: "invalid short", Data: "p", WantErr: true},
@@ -25,61 +25,49 @@ func TestValidateTitle(t *testing.T) {
 		{Name: "invalid too long", Data: longString(256), WantErr: true},
 	}
 
-	helper := testutil.New(t)
-	for _, tt := range tests {
-		helper.RunTest(tt, func() error {
-			return validateTitle(tt.Data.(string))
-		})
-	}
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return validateTitle(a.(string))
+	})
 }
 
 func TestValidateDescription(t *testing.T) {
-	tests := []testutil.TestCase{
+	tests := []testutils.TestCase{
 		{Name: "valid", Data: "test", WantErr: false},
 		{Name: "invalid empty", Data: "", WantErr: true},
 		{Name: "invalid too long", Data: longString(1001), WantErr: true},
 	}
 
-	helper := testutil.New(t)
-	for _, tt := range tests {
-		helper.RunTest(tt, func() error {
-			return validateDescription(tt.Data.(string))
-		})
-	}
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return validateDescription(a.(string))
+	})
 }
 
 func TestValidatePrice(t *testing.T) {
-	tests := []testutil.TestCase{
+	tests := []testutils.TestCase{
 		{Name: "valid", Data: 9.99, WantErr: false},
 		{Name: "invalid zero", Data: 0.0, WantErr: true},
 		{Name: "invalid negative", Data: -1.1, WantErr: true},
 	}
 
-	helper := testutil.New(t)
-	for _, tt := range tests {
-		helper.RunTest(tt, func() error {
-			return validatePrice(tt.Data.(float64))
-		})
-	}
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return validatePrice(a.(float64))
+	})
 }
 
 func TestValidateCount(t *testing.T) {
-	tests := []testutil.TestCase{
+	tests := []testutils.TestCase{
 		{Name: "valid", Data: 1, WantErr: false},
 		{Name: "invalid zero", Data: 0, WantErr: true},
 		{Name: "invalid negative", Data: -1, WantErr: true},
 	}
 
-	helper := testutil.New(t)
-	for _, tt := range tests {
-		helper.RunTest(tt, func() error {
-			return validateCount(tt.Data.(int))
-		})
-	}
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return validateCount(a.(int))
+	})
 }
 
 func TestCreateProductRequestValidate(t *testing.T) {
-	tests := []testutil.TestCase{
+	tests := []testutils.TestCase{
 		{
 			Name: "valid",
 			Data: &CreateProductRequest{
@@ -182,16 +170,13 @@ func TestCreateProductRequestValidate(t *testing.T) {
 		},
 	}
 
-	helper := testutil.New(t)
-	for _, tt := range tests {
-		helper.RunTest(tt, func() error {
-			return tt.Data.(*CreateProductRequest).Validate()
-		})
-	}
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return a.(*CreateProductRequest).Validate()
+	})
 }
 
 func TestSearchProductRequestValidate(t *testing.T) {
-	tests := []testutil.TestCase{
+	tests := []testutils.TestCase{
 		{
 			Name: "valid",
 			Data: &SearchProductRequest{
@@ -222,10 +207,7 @@ func TestSearchProductRequestValidate(t *testing.T) {
 		},
 	}
 
-	helper := testutil.New(t)
-	for _, tt := range tests {
-		helper.RunTest(tt, func() error {
-			return tt.Data.(*SearchProductRequest).Validate()
-		})
-	}
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return a.(*SearchProductRequest).Validate()
+	})
 }

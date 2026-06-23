@@ -1,7 +1,7 @@
 package user
 
 import (
-	"pkg/testutil"
+	"pkg/testutils"
 	"strings"
 	"testing"
 )
@@ -15,38 +15,32 @@ func longString(length int) string {
 }
 
 func TestValidateLogin(t *testing.T) {
-	tests := []testutil.TestCase{
+	tests := []testutils.TestCase{
 		{Name: "valid", Data: "login", WantErr: false},
 		{Name: "invalid: too short", Data: "lg", WantErr: true},
 		{Name: "invalid: too long", Data: longString(101), WantErr: true},
 		{Name: "invalid: empty", Data: "", WantErr: true},
 	}
 
-	helper := testutil.New(t)
-	for _, tt := range tests {
-		helper.RunTest(tt, func() error {
-			return validateLogin(tt.Data.(string))
-		})
-	}
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return validateLogin(a.(string))
+	})
 }
 
 func TestValidateEmail(t *testing.T) {
-	tests := []testutil.TestCase{
+	tests := []testutils.TestCase{
 		{Name: "valid", Data: "example@example.com", WantErr: false},
 		{Name: "invalid: wrong format", Data: "example#example,com", WantErr: true},
 		{Name: "invalid: too long", Data: longString(256), WantErr: true},
 	}
 
-	helper := testutil.New(t)
-	for _, tt := range tests {
-		helper.RunTest(tt, func() error {
-			return validateEmail(tt.Data.(string))
-		})
-	}
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return validateEmail(a.(string))
+	})
 }
 
 func TestValidatePassword(t *testing.T) {
-	tests := []testutil.TestCase{
+	tests := []testutils.TestCase{
 		{Name: "valid", Data: "ValidPass1", WantErr: false},
 		{Name: "invalid: too short", Data: "shortps", WantErr: true},
 		{Name: "invalid: too long", Data: longString(256), WantErr: true},
@@ -56,16 +50,13 @@ func TestValidatePassword(t *testing.T) {
 		{Name: "invalid: no digits", Data: "NoDigits", WantErr: true},
 	}
 
-	helper := testutil.New(t)
-	for _, tt := range tests {
-		helper.RunTest(tt, func() error {
-			return validatePassword(tt.Data.(string))
-		})
-	}
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return validatePassword(a.(string))
+	})
 }
 
 func TestLoginRequestValidate(t *testing.T) {
-	tests := []testutil.TestCase{
+	tests := []testutils.TestCase{
 		{
 			Name: "valid login request",
 			Data: &LoginRequest{
@@ -92,16 +83,13 @@ func TestLoginRequestValidate(t *testing.T) {
 		},
 	}
 
-	helper := testutil.New(t)
-	for _, tt := range tests {
-		helper.RunTest(tt, func() error {
-			return tt.Data.(*LoginRequest).Validate()
-		})
-	}
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return a.(*LoginRequest).Validate()
+	})
 }
 
 func TestRegisterRequestValidate(t *testing.T) {
-	tests := []testutil.TestCase{
+	tests := []testutils.TestCase{
 		{
 			Name: "valid register request",
 			Data: &RegisterRequest{
@@ -140,10 +128,7 @@ func TestRegisterRequestValidate(t *testing.T) {
 		},
 	}
 
-	helper := testutil.New(t)
-	for _, tt := range tests {
-		helper.RunTest(tt, func() error {
-			return tt.Data.(*RegisterRequest).Validate()
-		})
-	}
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return a.(*RegisterRequest).Validate()
+	})
 }
