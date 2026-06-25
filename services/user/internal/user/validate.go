@@ -4,8 +4,21 @@ import (
 	"net/mail"
 	"regexp"
 
+	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
 )
+
+func validateID(id uuid.UUID) error {
+	if id == uuid.Nil {
+		return ErrInvalidID
+	}
+
+	if _, err := uuid.Parse(id.String()); err != nil {
+		return ErrInvalidID
+	}
+
+	return nil
+}
 
 func validateLogin(login string) error {
 	if len(login) < 3 || len(login) > 100 {
@@ -77,7 +90,7 @@ func (r *DeleteRequest) Validate() error {
 	var g errgroup.Group
 
 	g.Go(func() error {
-		return validateLogin(r.Login)
+		return validateID(r.ID)
 	})
 
 	g.Go(func() error {

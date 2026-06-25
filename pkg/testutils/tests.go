@@ -3,6 +3,7 @@ package testutils
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -67,4 +68,8 @@ func AssertError(t *testing.T, err error, wantErr bool, errType error) {
 	} else {
 		require.NoError(t, err)
 	}
+}
+
+func GetCurrentTime() time.Time {
+	return time.Now().Truncate(time.Millisecond)
 }

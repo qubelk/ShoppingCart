@@ -4,6 +4,8 @@ import (
 	"pkg/testutils"
 	"strings"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 func longString(length int) string {
@@ -12,6 +14,18 @@ func longString(length int) string {
 		b.WriteString("a")
 	}
 	return b.String()
+}
+
+func TestValidateID(t *testing.T) {
+	tests := []testutils.TestCase{
+		{Name: "valid", Data: uuid.New(), WantErr: false},
+		{Name: "invalid: nil id", Data: uuid.Nil, WantErr: true},
+		{Name: "invalid: empty id", Data: uuid.UUID{}, WantErr: true},
+	}
+
+	testutils.UnitTestRunner(t, tests, func(a any) error {
+		return validateID(a.(uuid.UUID))
+	})
 }
 
 func TestValidateLogin(t *testing.T) {

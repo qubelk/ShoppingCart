@@ -7,19 +7,20 @@ import (
 )
 
 type RegisterRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Login    string `json:"login"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Login    string `json:"login" binding:"required"`
 }
 
 type LoginRequest struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
+	Login    string `json:"login" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 type DeleteRequest struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
+	ID       uuid.UUID `json:"id" binding:"required"`
+	Login    string    `json:"login" binding:"required"`
+	Password string    `json:"password" binding:"required"`
 }
 
 type RegisterResponse struct {

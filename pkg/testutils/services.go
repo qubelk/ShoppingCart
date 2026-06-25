@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockRepository interface {
-	AssertExpectations(t *testing.T)
+	AssertExpectations(t mock.TestingT) bool
 }
 
 type ServiceTestHelper struct {

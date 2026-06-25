@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
 	"pkg/logs"
 	"product/internal/product"
@@ -21,25 +20,6 @@ func New(serv *service.ProductService) *ProductHandler {
 	}
 }
 
-func respondError(ctx *gin.Context, err error) {
-	switch {
-	case errors.Is(err, product.ErrInvalidTitle):
-		fallthrough
-	case errors.Is(err, product.ErrInvalidDescription):
-		fallthrough
-	case errors.Is(err, product.ErrInvalidPrice):
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-	case errors.Is(err, product.ErrProductNotFound):
-		fallthrough
-	case errors.Is(err, product.ErrProductNotExists):
-		ctx.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
-	default:
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"message": "internal server error",
-		})
-	}
-}
-
 func (ph *ProductHandler) Create(ctx *gin.Context) {
 	userID, ok := ctx.Get("user_id")
 	if !ok {
@@ -55,14 +35,18 @@ func (ph *ProductHandler) Create(ctx *gin.Context) {
 
 	var req product.CreateProductRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		respondError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid create product request",
+		})
 		logs.LogError(err)
 		return
 	}
 
 	res, err := ph.serv.Create(ctx.Request.Context(), req, id)
 	if err != nil {
-		respondError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": "internal server error",
+		})
 		logs.LogError(err)
 		return
 	}
@@ -73,7 +57,9 @@ func (ph *ProductHandler) Create(ctx *gin.Context) {
 func (ph *ProductHandler) SearchProducts(ctx *gin.Context) {
 	var req product.SearchProductRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {
-		respondError(ctx, err)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid search product request",
+		})
 		logs.LogError(err)
 		return
 	}
@@ -87,7 +73,9 @@ func (ph *ProductHandler) SearchProducts(ctx *gin.Context) {
 
 	res, err := ph.serv.SearchProducts(ctx.Request.Context(), &req)
 	if err != nil {
-		respondError(ctx, err)
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"message": "product not found",
+		})
 		logs.LogError(err)
 		return
 	}
@@ -152,7 +140,9 @@ func (ph *ProductHandler) Delete(ctx *gin.Context) {
 	req.OwnerID = userID
 
 	if err := ph.serv.Delete(ctx.Request.Context(), &req); err != nil {
-		respondError(ctx, err)
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"message": "not found product to delete",
+		})
 		logs.LogError(err)
 		return
 	}

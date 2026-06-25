@@ -31,7 +31,7 @@ func (s *UserService) Register(ctx context.Context, req *user.RegisterRequest) (
 	}
 
 	existingLogin, err := s.repo.GetByLogin(ctx, req.Login)
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) && !errors.Is(err, user.ErrUserNotFound) {
 		return nil, fmt.Errorf("failed to check login uniqueness: %w", err)
 	}
 
@@ -40,7 +40,7 @@ func (s *UserService) Register(ctx context.Context, req *user.RegisterRequest) (
 	}
 
 	existingEmail, err := s.repo.GetByEmail(ctx, req.Email)
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) && !errors.Is(err, user.ErrUserNotFound) {
 		return nil, fmt.Errorf("failed to check email uniqueness: %w", err)
 	}
 
@@ -92,9 +92,13 @@ func (s *UserService) Delete(ctx context.Context, req *user.DeleteRequest) error
 		return err
 	}
 
-	u, err := s.repo.GetByLogin(ctx, req.Login)
+	u, err := s.repo.GetByID(ctx, req.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get user: %w", err)
+	}
+
+	if u.Login != req.Login {
+		return fmt.Errorf("can't delete another user account")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password)); err != nil {

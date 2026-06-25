@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"pkg/logs"
@@ -21,46 +20,21 @@ func New(serv *service.UserService) *UserHandler {
 	}
 }
 
-func respondError(ctx *gin.Context, err error) {
-	switch {
-	case errors.Is(err, user.ErrEmailAlredyExist):
-		ctx.JSON(http.StatusConflict, gin.H{
-			"message": "email already register",
-		})
-	case errors.Is(err, user.ErrInvalidEmail):
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "invalid email",
-		})
-	case errors.Is(err, user.ErrTooShortPassword):
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "password is to short",
-		})
-	case errors.Is(err, user.ErrWeakPassword):
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"message": "password is to weak",
-		})
-	case errors.Is(err, user.ErrUserNotFound):
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"message": "user not found",
-		})
-	default:
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"message": "internal server error",
-		})
-	}
-}
-
 func (h *UserHandler) Register(ctx *gin.Context) {
 	var req user.RegisterRequest
-	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
-		respondError(ctx, err)
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid register request",
+		})
 		logs.LogError(err)
 		return
 	}
 
 	u, err := h.serv.Register(ctx.Request.Context(), &req)
 	if err != nil {
-		respondError(ctx, err)
+		ctx.JSON(http.StatusConflict, gin.H{
+			"message": user.ErrEmailAlredyExist,
+		})
 		logs.LogError(err)
 		return
 	}
@@ -70,22 +44,28 @@ func (h *UserHandler) Register(ctx *gin.Context) {
 
 func (h *UserHandler) Login(ctx *gin.Context) {
 	var req user.LoginRequest
-	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
-		respondError(ctx, err)
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid login request",
+		})
 		logs.LogError(err)
 		return
 	}
 
 	u, err := h.serv.Login(ctx.Request.Context(), &req)
 	if err != nil {
-		respondError(ctx, err)
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"message": "authorization failed",
+		})
 		logs.LogError(err)
 		return
 	}
 
 	token, err := h.serv.GenerateToken(u.User.ID, u.User.Login)
 	if err != nil {
-		respondError(ctx, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"message": "internal server error",
+		})
 		logs.LogError(err)
 		return
 	}
@@ -107,14 +87,18 @@ func (h *UserHandler) GetProfile(ctx *gin.Context) {
 	login, ok := ctx.Get("login")
 	if !ok {
 		err := errors.New("invalid user login")
-		respondError(ctx, err)
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"message": err,
+		})
 		logs.LogError(err)
 		return
 	}
 
 	u, err := h.serv.GetProfile(ctx.Request.Context(), login.(string))
 	if err != nil {
-		respondError(ctx, err)
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"message": "user with this login not found",
+		})
 		logs.LogError(err)
 		return
 	}
@@ -124,14 +108,18 @@ func (h *UserHandler) GetProfile(ctx *gin.Context) {
 
 func (h *UserHandler) Delete(ctx *gin.Context) {
 	var req user.DeleteRequest
-	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
-		respondError(ctx, err)
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid delete request",
+		})
 		logs.LogError(err)
 		return
 	}
 
 	if err := h.serv.Delete(ctx.Request.Context(), &req); err != nil {
-		respondError(ctx, err)
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"message": "user with this login not found",
+		})
 		logs.LogError(err)
 		return
 	}

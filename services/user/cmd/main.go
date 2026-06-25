@@ -37,10 +37,6 @@ func main() {
 
 	r := gin.Default()
 
-	r.GET("/", func(ctx *gin.Context) {
-		ctx.File("./index.html")
-	})
-
 	users := r.Group("/users")
 	{
 		users.POST("/", hand.Register)
