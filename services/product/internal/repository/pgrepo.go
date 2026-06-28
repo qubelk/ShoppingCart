@@ -75,7 +75,11 @@ func (pg *pgProductRepository) Create(ctx context.Context, p *product.Product) e
 		p.Stock,
 	).Scan(&p.CreatedAt)
 
-	return fmt.Errorf("failed to create product: %w", err)
+	if err != nil {
+		return fmt.Errorf("failed to create product: %w", err)
+	}
+
+	return nil
 }
 
 func (pg *pgProductRepository) GetByID(ctx context.Context, id uuid.UUID) (*product.Product, error) {
